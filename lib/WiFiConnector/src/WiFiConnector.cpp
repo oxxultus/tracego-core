@@ -1,3 +1,4 @@
+#include "Config.h"
 #include "WiFiConnector.h"
 #include <Arduino.h>  // Serial 관련
 
@@ -46,6 +47,10 @@ bool WiFiConnector::connect(uint32_t timeoutMs) {
 
     if (WiFi.status() == WL_CONNECTED) {
         Serial.println("\n[WiFiConnector][2/2] 연결 성공! IP: " + WiFi.localIP().toString());
+
+        config.localIP = WiFi.localIP().toString();   
+        config.save();
+
         return true;
     } else {
         Serial.println("\n[WiFiConnector][2/2] 연결 실패! 연결 제한 초과");

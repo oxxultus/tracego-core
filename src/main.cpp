@@ -39,8 +39,8 @@ void setup() {
         Serial.println("[WiFi] 연결 실패. 설정 모드로 진입합니다.");
 
         WiFi.mode(WIFI_AP);
-        WiFi.softAP("SMART_DELIVERY_BOT_CONFIG", "12345678");  // SoftAP 시작
-        Serial.println("[WiFi] SoftAP 모드 활성화: SSID = DELIVERY_BOT_CONFIG 접속 IP: " + WiFi.softAPIP().toString());
+        WiFi.softAP("TraceGo_Core_Setting", "12345678");  // SoftAP 시작
+        Serial.println("[WiFi] SoftAP 모드 활성화: SSID = TraceGo_Core_Setting 접속 IP: " + WiFi.softAPIP().toString());
         
         configWebServer = new ConfigWebServer(config);
         configWebServer->begin();
@@ -53,7 +53,7 @@ void setup() {
     setServerHandler();        // 서버 핸들러 등록
     serverService->begin();    // 서버 시작
 
-    Serial.println("[DELIVERY BOT][MAIN] 메인 모듈 준비 완료");
+    Serial.println("[TraceGo][MAIN] 메인 모듈 준비 완료");
     simpleMessage("종료선");
 }
 
@@ -112,8 +112,8 @@ void setServerHandler() {
         doc["resetWorkingLists"]    = config.resetWorkingLists;
         doc["getPayment"]           = config.getPayment;
         doc["addWorkingList"]       = config.addWorkingList;
+        doc["localIP"]              = config.localIP;
         
-
         String output;
         serializeJson(doc, output);
         return output;
@@ -253,7 +253,7 @@ void handleMatchedProduct(const String& matchedName, const String& detectedUid) 
         Serial.println("[RFIDController][3/3] STOP 명령 전송 및 ACK 수신 성공");
 
         // UID를 서버에 전송하여 워킹 리스트에 추가
-        //String path = "/bot/add-working-list?uid=" + detectedUid;
+        // String path = "/bot/add-working-list?uid=" + detectedUid;
         String path = config.addWorkingList.c_str() + detectedUid;
         String response = ServerService::sendGETRequest(config.serverIP.c_str(), config.serverPort, path);
 

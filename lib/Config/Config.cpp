@@ -13,6 +13,7 @@ void Config::load() {
   serverIP        = prefs.getString("server_ip", "oxxultus.kro.kr");
   serverPort      = prefs.getInt("server_port", 8080);
   innerPort       = prefs.getInt("inner_port", 8081);
+  localIP         = prefs.getString("localIP", ""); 
 
   adminUID        = prefs.getString("admin_uid", "a1b2c3d4");
   masterKey       = prefs.getString("master_key", "c3a27b28");
@@ -45,6 +46,7 @@ void Config::save() {
   prefs.putString("server_ip", serverIP);
   prefs.putInt("server_port", serverPort);
   prefs.putInt("inner_port", innerPort);
+  prefs.putString("localIP", localIP);
 
   prefs.putString("admin_uid", adminUID);
   prefs.putString("master_key", masterKey);

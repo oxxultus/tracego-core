@@ -7,6 +7,7 @@ struct Config {
   // Wi-Fi
   String ssid;
   String password;
+  String localIP;
 
   // 서버 정보
   String serverIP;
