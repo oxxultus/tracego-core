@@ -23,10 +23,14 @@ private:
     std::function<void()> stopHandler = nullptr;
     std::function<void()> resetHandler = nullptr;
     std::function<void(const String&)> postHandler = nullptr;
-    std::function<void(const String&)> updateConfigHandler;
 
     std::function<String(void)> statusHandler = nullptr;
     std::function<void()> resetConfigHandler = nullptr;
+
+    std::function<String(void)> mainPageHandler = nullptr;
+    std::function<String(String)> updateConfigHandler = nullptr;
+    std::function<String(void)> advancedPageHandler = nullptr;
+    std::function<String(void)> statusViewHandler = nullptr;
 
     void setupRoutes();       // 라우팅 등록
 
@@ -46,7 +50,11 @@ public:
 
     void setStatusHandler(const std::function<String(void)> &handler);
     void setResetConfigHandler(const std::function<void()> &handler);
-    void setUpdateConfigHandler(const std::function<void(const String&)>& handler);
+
+    void setMainPageHandler(std::function<String(void)> handler);
+    void setUpdateConfigHandler(std::function<String(String)> handler);
+    void setAdvancedPageHandler(std::function<String(void)> handler);
+    void setStatusViewHandler(std::function<String(void)> handler);
 
     // HTTP 요청 전송 메서드
     static String sendGETRequest(const char* host, uint16_t port, const String& pathWithParams);
@@ -57,8 +65,13 @@ public:
     [[nodiscard]] bool isGoHandlerSet() const;
     [[nodiscard]] bool isStopHandlerSet() const;
     [[nodiscard]] bool isResetHandlerSet() const;
+
     [[nodiscard]] bool isStatusHandlerSet() const;
     [[nodiscard]] bool isResetConfigHandlerSet() const;
+    [[nodiscard]] bool isMainPageHandlerSet() const;
+    [[nodiscard]] bool isUpdateConfigHandlerSet() const;
+    [[nodiscard]] bool isAdvancedPageHandlerSet() const;
+    [[nodiscard]] bool isStatusViewHandlerSet() const;
 };
 
 #endif // WIFI_WEB_SERVICE_H
