@@ -89,44 +89,8 @@ void modulsSetting() {
 
 // [SETUP-2] 핸들러 등록을 진행하는 함수입니다.
 void setServerHandler() {
-    // 핸들러 등록
-    serverService->setStatusHandler([]() -> String {
-        JsonDocument doc;  // 권장된 JsonDocument 타입 사용
-        doc.set(JsonObject());  // 명시적 초기화 (v7에서는 안전하게 사용하기 위해 권장됨)
 
-        doc["ssid"]                 = config.ssid;
-        doc["password"]             = config.password;
-        doc["server_ip"]            = config.serverIP;
-        doc["server_port"]          = config.serverPort;
-        doc["inner_port"]           = config.innerPort;
-        doc["admin_uid"]            = config.adminUID;
-        doc["master_key"]           = config.masterKey;
-        doc["test_key"]             = config.testKey;
-        doc["use_rfid"]             = config.useRFID;
-        doc["comm_rx"]              = config.commRxPin;
-        doc["comm_tx"]              = config.commTxPin;
-        doc["rc_sda"]               = config.rcSdaPin;
-        doc["rc_rst"]               = config.rcRstPin;
-        doc["baudrate"]             = config.serialBaudrate;
-        doc["baudrate2"]            = config.serial2Baudrate;
-        doc["firstSetWoringLists"]  = config.firstSetWoringLists;
-        doc["resetWorkingLists"]    = config.resetWorkingLists;
-        doc["getPayment"]           = config.getPayment;
-        doc["addWorkingList"]       = config.addWorkingList;
-        doc["localIP"]              = config.localIP;
-        
-        String output;
-        serializeJson(doc, output);
-        return output;
-    });
-
-    serverService->setResetConfigHandler([]() {
-        Preferences prefs;
-        prefs.begin("settings", false);
-        prefs.clear();  // 모든 설정 삭제
-        prefs.end();
-    });
-
+    // [봇 조작 핸들러] 자동화 카트에게 시작 명령을 내리는 핸들러입니다.
     serverService->setStartHandler([]() {
         Serial.println("[ServerService][GET /start] 로봇 시작 명령 수신");
         
@@ -156,16 +120,19 @@ void setServerHandler() {
         sendWithRetry("START");  // 로봇 시작 명령
     });
     
+    // [봇 조작 핸들러] 자동화 카트에게 이동 명령을 내리는 핸들러입니다.
     serverService->setGoHandler([]() {
         Serial.println("[ServerService][GET /go] 로봇 이동 명령 수신");
         sendWithRetry("GO"); // 함수: [UTILITY-1]
     });
 
+    // [봇 조작 핸들러] 자동화 카트에게 정지 명령을 내리는 핸들러입니다.
     serverService->setStopHandler([]() {
         Serial.println("[ServerService][GET /stop] 로봇 정지 명령 수신");
         sendWithRetry("STOP"); // 함수: [UTILITY-1]
     });
 
+    // [봇 조작 핸들러] 자동화 카트에게 초기화 명령을 내리는 핸들러입니다.
     serverService->setResetHandler([]() {
         Serial.println("[ServerService][GET /reset] 로봇 정지 명령 수신");
 
@@ -184,7 +151,8 @@ void setServerHandler() {
 
         sendWithRetry("STOP");  // 로봇 정지 명령 전송
     });
-
+    
+    // [메인 페이지 핸들러] 기본 설정 페이지를 반환하는 핸들러입니다.
     serverService->setMainPageHandler([]() -> String {
         return R"rawliteral(
             <!DOCTYPE html>
@@ -245,6 +213,7 @@ void setServerHandler() {
         )rawliteral";
     });
 
+    // [고급 설정 핸들러] 고급 설정 페이지를 반환하는 핸들러입니다.
     serverService->setAdvancedPageHandler([]() -> String {
         String html = R"rawliteral(
             <!DOCTYPE html>
@@ -450,6 +419,7 @@ void setServerHandler() {
         return html;
     });
 
+    // [고급 설정 핸들러] 고급 설정 변경사항을 저장하는 핸들러입니다.
     serverService->setUpdateConfigHandler([](String body) -> String {
         JsonDocument doc;
         doc.set(JsonObject());
@@ -471,15 +441,47 @@ void setServerHandler() {
         prefs.putInt("rc_rst", doc["rc_rst"] | 22);
         prefs.putInt("baudrate", doc["baudrate"] | 115200);
         prefs.putInt("baudrate2", doc["baudrate2"] | 9600);
-        prefs.putString("firstSetWoringLists", doc["firstSetWoringLists"] | "");
-        prefs.putString("resetWorkingLists", doc["resetWorkingLists"] | "");
-        prefs.putString("getPayment", doc["getPayment"] | "");
-        prefs.putString("addWorkingList", doc["addWorkingList"] | "");
+        prefs.putString("fswl", doc["firstSetWoringLists"] | "");
+        prefs.putString("rwl",  doc["resetWorkingLists"]   | "");
+        prefs.putString("gpay", doc["getPayment"]          | "");
+        prefs.putString("awl",  doc["addWorkingList"]      | "");
         prefs.end();
 
         return "{\"message\":\"설정이 저장되었습니다. 3초 후 재시작됩니다.\"}";
     });
 
+    // [상태 핸들러] 현재 시스템 상태를 JSON 형태로 반환하는 핸들러입니다.
+    serverService->setStatusHandler([]() -> String {
+        JsonDocument doc;  // 권장된 JsonDocument 타입 사용
+        doc.set(JsonObject());  // 명시적 초기화 (v7에서는 안전하게 사용하기 위해 권장됨)
+
+        doc["ssid"]                 = config.ssid;
+        doc["password"]             = config.password;
+        doc["server_ip"]            = config.serverIP;
+        doc["server_port"]          = config.serverPort;
+        doc["inner_port"]           = config.innerPort;
+        doc["admin_uid"]            = config.adminUID;
+        doc["master_key"]           = config.masterKey;
+        doc["test_key"]             = config.testKey;
+        doc["use_rfid"]             = config.useRFID;
+        doc["comm_rx"]              = config.commRxPin;
+        doc["comm_tx"]              = config.commTxPin;
+        doc["rc_sda"]               = config.rcSdaPin;
+        doc["rc_rst"]               = config.rcRstPin;
+        doc["baudrate"]             = config.serialBaudrate;
+        doc["baudrate2"]            = config.serial2Baudrate;
+        doc["firstSetWoringLists"]  = config.firstSetWoringLists;
+        doc["resetWorkingLists"]    = config.resetWorkingLists;
+        doc["getPayment"]           = config.getPayment;
+        doc["addWorkingList"]       = config.addWorkingList;
+        doc["localIP"]              = config.localIP;
+        
+        String output;
+        serializeJson(doc, output);
+        return output;
+    });
+
+    // [상태 뷰 핸들러] 시스템 상태를 HTML로 표시하는 핸들러입니다.
     serverService->setStatusViewHandler([]() -> String {
         return  R"rawliteral(
                 <!DOCTYPE html>
@@ -517,6 +519,14 @@ void setServerHandler() {
                 </body>
                 </html>
             )rawliteral";
+    });
+
+    // [설정 초기화 핸들러] 모든 설정을 초기화하는 핸들러입니다.
+    serverService->setResetConfigHandler([]() {
+        Preferences prefs;
+        prefs.begin("settings", false);
+        prefs.clear();  // 모든 설정 삭제
+        prefs.end();
     });
 
     Serial.println("[setServerHandler][1/2] 내장 서버 API 실행 함수 등록 확인 절차 시작");

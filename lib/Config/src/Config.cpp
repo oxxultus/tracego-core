@@ -29,10 +29,10 @@ void Config::load() {
   serialBaudrate  = prefs.getInt("baudrate", 115200);
   serial2Baudrate = prefs.getInt("baudrate2", 9600);
 
-  firstSetWoringLists = prefs.getString("firstSetWoringLists", "/bot/first-set-working-list");
-  resetWorkingLists   = prefs.getString("resetWorkingLists", "/bot/reset-working-list");
-  getPayment          = prefs.getString("getPayment", "/bot/payment");
-  addWorkingList      = prefs.getString("addWorkingList", "/bot/add-working-list?uid=");
+  firstSetWoringLists = prefs.getString("fswl", "/bot/first-set-working-list");
+  resetWorkingLists   = prefs.getString("rwl", "/bot/reset-working-list");
+  getPayment          = prefs.getString("gpay", "/bot/payment");
+  addWorkingList      = prefs.getString("awl", "/bot/add-working-list?uid=");
 
   prefs.end();
 }
@@ -62,10 +62,10 @@ void Config::save() {
   prefs.putInt("baudrate", serialBaudrate);
   prefs.putInt("baudrate2", serial2Baudrate);
 
-  prefs.putString("firstSetWoringLists",firstSetWoringLists);
-  prefs.putString("resetWorkingLists",resetWorkingLists);
-  prefs.putString("getPayment", getPayment);
-  prefs.putString("addWorkingList", addWorkingList);
+  prefs.putString("fswl", firstSetWoringLists);
+  prefs.putString("rwl", resetWorkingLists);
+  prefs.putString("gpay", getPayment);
+  prefs.putString("awl", addWorkingList);
 
   prefs.end();
 }
