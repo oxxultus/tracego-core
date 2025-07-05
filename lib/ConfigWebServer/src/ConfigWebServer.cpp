@@ -89,7 +89,7 @@ void ConfigWebServer::handleRoot() {
                     <input id="ssid" name="ssid" type="text" value="%SSID%" required>
 
                     <label for="password">Password</label>
-                    <input id="password" name="password" type="password" value="%PASSWORD%" required>
+                    <input id="password" name="password" type="password" value="%PASSWORD%">
 
                     <input type="submit" value="저장">
                 </form>

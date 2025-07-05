@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Preferences.h>
-
+#include <HTTPClient.h>
 
 #include "Config.h"
 #include "ConfigWebServer.h"
@@ -13,6 +13,7 @@
 // 함수 선언부 ===========================================================================================================
 bool sendWithRetry(const String& cmd, const int retries = 3);       // [UTILITY-1] 명령 전송 함수 (재시도 포함)
 void simpleMessage(String message);                                 // [UTILITY-2] 간편 메시지 사용 메서드
+void sendStartStandRequest(const String& detectedUid);              // [UTILITY-3] /start-stand?uid= 요청을 전송하는 함수
 bool isAdminCard(const String& uid);                                // [LOOP-1] 관리자 카드 여부 판별
 bool refreshPaymentData(int maxRetries = 3);                        // [LOOP-2] 결제 내역 초기화 및 재요청 로직
 bool fetchPaymentDataUntilSuccess(const int count);                 // [LOOP-3] 외부 서버로 GET 요청 전송해 결제 내역을 받아온다.
@@ -29,6 +30,7 @@ ConfigWebServer* configWebServer = nullptr;     // ConfigWebServer 객체 생성
 PaymentData payment;                            // 결제 내역 저장
 
 // 프로그램 설정 및 시작 ====================================================================================================
+
 void setup() {
     config.load(); // EEPROM 또는 Preferences에서 구성 불러오기
 
@@ -72,6 +74,7 @@ void loop() {
 // SETUP FUNCTION =====================================================================================================
 
 // [SETUP-1] 모듈을 초기 설정 하는 함수입니다.
+
 void modulsSetting() {
     Serial.begin(config.serialBaudrate);   // 시리얼 설정
 
@@ -297,6 +300,7 @@ void setServerHandler() {
                         server_ip: document.getElementById("server_ip").value,
                         server_port: parseInt(document.getElementById("server_port").value),
                         inner_port: parseInt(document.getElementById("inner_port").value),
+                        stand_port: parseInt(document.getElementById("stand_port").value),
                         admin_uid: document.getElementById("admin_uid").value,
                         master_key: document.getElementById("master_key").value,
                         test_key: document.getElementById("test_key").value,
@@ -337,6 +341,9 @@ void setServerHandler() {
 
                         <label for="inner_port">Inner Port</label>
                         <input id="inner_port" value="%INNER_PORT%" type="number">
+
+                        <label for="stand_port">Stand Port</label>
+                        <input id="stand_port" value="%STAND_PORT%" type="number">
                     </fieldset>
 
                     <fieldset>
@@ -401,6 +408,7 @@ void setServerHandler() {
         html.replace("%SERVER_IP%", config.serverIP);
         html.replace("%SERVER_PORT%", String(config.serverPort));
         html.replace("%INNER_PORT%", String(config.innerPort));
+        html.replace("%STAND_PORT%", String(config.standPort));
         html.replace("%ADMIN_UID%", config.adminUID);
         html.replace("%MASTER_KEY%", config.masterKey);
         html.replace("%TEST_KEY%", config.testKey);
@@ -431,6 +439,7 @@ void setServerHandler() {
         prefs.putString("server_ip", doc["server_ip"] | "");
         prefs.putInt("server_port", doc["server_port"] | 8080);
         prefs.putInt("inner_port", doc["inner_port"] | 8081);
+        prefs.putInt("stand_port", doc["stand_port"] | 8082);
         prefs.putString("admin_uid", doc["admin_uid"] | "");
         prefs.putString("master_key", doc["master_key"] | "");
         prefs.putString("test_key", doc["test_key"] | "");
@@ -460,6 +469,7 @@ void setServerHandler() {
         doc["server_ip"]            = config.serverIP;
         doc["server_port"]          = config.serverPort;
         doc["inner_port"]           = config.innerPort;
+        doc["stand_port"]           = config.standPort;
         doc["admin_uid"]            = config.adminUID;
         doc["master_key"]           = config.masterKey;
         doc["test_key"]             = config.testKey;
@@ -606,6 +616,9 @@ void handleMatchedProduct(const String& matchedName, const String& detectedUid) 
         String path = config.addWorkingList.c_str() + detectedUid;
         String response = ServerService::sendGETRequest(config.serverIP.c_str(), config.serverPort, path);
 
+        // detectedUid 를 기반으로 /start-stand?uid=
+        sendStartStandRequest(detectedUid);
+
         Serial.println("[Server 응답] " + response);
 
         if (response.indexOf("작업 리스트에 추가") != -1 || response.indexOf("200 OK") != -1) {
@@ -688,9 +701,40 @@ bool sendWithRetry(const String& cmd, const int retries) {
 
 // [UTILITY-2] 간편 메시지 사용 메서드
 void simpleMessage(String message) {
+
     if (message == "시작선") {
         Serial.println("= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =");
     }else if (message == "종료선") {
         Serial.println("= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =");
+    }
+}
+
+// [UTILITY] 감지된 UID를 기반으로 /start-stand 요청을 보냅니다.
+void sendStartStandRequest(const String& detectedUid) {
+        if (detectedUid.length() == 0) {
+        Serial.println("[요청 실패] UID가 비어 있습니다.");
+        return;
+    }
+
+    for (int attempt = 1; attempt <= 3; ++attempt) {
+        HTTPClient http;
+        String url = "http://" + String(config.serverIP) + ":" + String(config.standPort) + "/start-stand?uid=" + detectedUid;
+
+        Serial.println("[요청 전송] (" + String(attempt) + "회차): " + url);
+        http.begin(url);
+
+        int httpCode = http.GET();
+
+        if (httpCode == 200) {
+            String response = http.getString();
+            Serial.println("[응답 200] 작업 시작됨 → " + response);
+            http.end();
+            break;
+        } else {
+            Serial.println("[요청 실패] 응답 코드: " + String(httpCode));
+        }
+
+        http.end();
+        delay(1000); // 1초 대기 후 재시도
     }
 }

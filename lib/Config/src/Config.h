@@ -13,6 +13,7 @@ struct Config {
   String serverIP;
   int serverPort;
   int innerPort;
+  int standPort;
 
   // 요청 api
   String firstSetWoringLists;
