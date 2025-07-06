@@ -617,13 +617,12 @@ void handleMatchedProduct(const String& matchedName, const String& detectedUid) 
         String path = config.addWorkingList.c_str() + detectedUid;
         String response = ServerService::sendGETRequest(config.serverIP.c_str(), config.serverPort, path);
 
-        // detectedUid 를 기반으로 /start-stand?uid=
-        sendStartStandRequest(detectedUid);
-
         Serial.println("[Server 응답] " + response);
 
-        if (response.indexOf("작업 리스트에 추가") != -1 || response.indexOf("200 OK") != -1) {
-            Serial.println("[RFIDController] 워킹 리스트 추가 성공");   
+        if (response.indexOf("작업 항목이 성공적으로 추가되었습니다.") != -1 || response.indexOf("200 OK") != -1) {
+            Serial.println("[RFIDController] 워킹 리스트 추가 성공");
+            // detectedUid 를 기반으로 /start-stand?uid=
+            sendStartStandRequest(detectedUid);
         } else {
             Serial.println("[RFIDController] 워킹 리스트 추가 실패");
         }
