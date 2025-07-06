@@ -639,7 +639,7 @@ void checkDetectedUid() {
     if (detectedUid.isEmpty()) return;
     
     //TODO: 카드가 찍히면 해당하는 UID를 가지는 선반에 요청을 보내 rfid카드를 들어 올린다
-    sendUpRfidCardRequest(detectedUid);
+    //sendUpRfidCardRequest(detectedUid);
 
     Serial.println("[RFIDController][1/3] 감지된 UID: " + detectedUid);
 
