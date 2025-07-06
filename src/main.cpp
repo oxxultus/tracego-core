@@ -14,7 +14,7 @@
 bool sendWithRetry(const String& cmd, const int retries = 3);       // [UTILITY-1] 명령 전송 함수 (재시도 포함)
 void simpleMessage(String message);                                 // [UTILITY-2] 간편 메시지 사용 메서드
 void sendStartStandRequest(const String& detectedUid);              // [UTILITY-3] /start-stand?uid= 요청을 전송하는 함수
-void sendUpRfidCardRequest(const String& detectedUid);                   // [UTILITY-4] /up-rfid?uid= 요청을 전송하는 함수
+void sendUpRfidCardRequest(const String& detectedUid);              // [UTILITY-4] /up-rfid?uid= 요청을 전송하는 함수
 bool isAdminCard(const String& uid);                                // [LOOP-1] 관리자 카드 여부 판별
 bool refreshPaymentData(int maxRetries = 3);                        // [LOOP-2] 결제 내역 초기화 및 재요청 로직
 bool fetchPaymentDataUntilSuccess(const int count);                 // [LOOP-3] 외부 서버로 GET 요청 전송해 결제 내역을 받아온다.
